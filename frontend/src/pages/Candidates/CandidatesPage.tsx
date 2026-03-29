@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import api from "../../services/api";
+import { getCandidates } from "../../services/candidateService";
 
 type Candidate = {
   id: number;
@@ -7,20 +7,20 @@ type Candidate = {
   email: string;
   phone: string;
   status: string;
-  source: string;
 };
 
-function CandidatesPage() {
+const CandidatesPage = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchCandidates = async () => {
       try {
-        const response = await api.get("/candidates");
-        setCandidates(response.data);
-      } catch (error) {
-        console.error("Error fetching candidates:", error);
+        const data = await getCandidates();
+        setCandidates(data);
+      } catch (err) {
+        setError("Failed to load candidates.");
       } finally {
         setLoading(false);
       }
@@ -30,51 +30,38 @@ function CandidatesPage() {
   }, []);
 
   return (
-    <div>
-      <div style={{ marginBottom: "20px" }}>
-        <h2 style={{ marginBottom: "8px" }}>Candidates</h2>
-        <p style={{ margin: 0, color: "#6b7280" }}>
-          Manage and review candidate records.
-        </p>
-      </div>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Candidates</h1>
 
-      <div
-        style={{
-          background: "#ffffff",
-          borderRadius: "12px",
-          padding: "20px",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-        }}
-      >
-        {loading ? (
-          <p>Loading candidates...</p>
-        ) : (
-          <table style={{ width: "100%", marginTop: "16px" }}>
-            <thead>
+      {loading && <p>Loading candidates...</p>}
+      {error && <p className="text-red-500">{error}</p>}
+
+      {!loading && !error && (
+        <div className="overflow-x-auto bg-white rounded-lg shadow">
+          <table className="min-w-full text-left border-collapse">
+            <thead className="bg-gray-100">
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Status</th>
-                <th>Source</th>
+                <th className="p-4 border-b">Name</th>
+                <th className="p-4 border-b">Email</th>
+                <th className="p-4 border-b">Phone</th>
+                <th className="p-4 border-b">Status</th>
               </tr>
             </thead>
             <tbody>
               {candidates.map((candidate) => (
-                <tr key={candidate.id}>
-                  <td>{candidate.name}</td>
-                  <td>{candidate.email}</td>
-                  <td>{candidate.phone}</td>
-                  <td>{candidate.status}</td>
-                  <td>{candidate.source}</td>
+                <tr key={candidate.id} className="hover:bg-gray-50">
+                  <td className="p-4 border-b">{candidate.name}</td>
+                  <td className="p-4 border-b">{candidate.email}</td>
+                  <td className="p-4 border-b">{candidate.phone}</td>
+                  <td className="p-4 border-b">{candidate.status}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
-}
+};
 
 export default CandidatesPage;
